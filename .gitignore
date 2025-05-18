@@ -1,0 +1,47 @@
+# Unity generated folders
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+Packages/PackageCache/
+
+# User-specific settings
+UserSettings/
+.vscode/
+.idea/
+
+# Visual Studio/VSCode
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+*.sln.DotSettings.user
+*.sln.iml
+
+# OS generated files
+.DS_Store
+*.swp
+
+# Unity Asset meta data should be included, but not user-specific settings
+*.pidb.meta
+
+# Crash logs
+sysinfo.txt
+
+# Build results
+*.apk
+*.aab
+*.unitypackage
