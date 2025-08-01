@@ -1,0 +1,20 @@
+                        -HC:\Users\ADMIN\Desktop\GAS Projects\Delivery Rush\Library\Bee\Android\Prj\Mono2x\Gradle\unityLibrary\src\main\cpp
+-DCMAKE_SYSTEM_NAME=Android
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+-DCMAKE_SYSTEM_VERSION=23
+-DANDROID_PLATFORM=android-23
+-DANDROID_ABI=armeabi-v7a
+-DCMAKE_ANDROID_ARCH_ABI=armeabi-v7a
+-DANDROID_NDK=C:\Program Files\android-ndk-r23b
+-DCMAKE_ANDROID_NDK=C:\Program Files\android-ndk-r23b
+-DCMAKE_TOOLCHAIN_FILE=C:\Program Files\android-ndk-r23b\build\cmake\android.toolchain.cmake
+-DCMAKE_MAKE_PROGRAM=C:\Program Files\Android\SDK\cmake\3.22.1\bin\ninja.exe
+-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=C:\Users\ADMIN\Desktop\GAS Projects\Delivery Rush\Library\Bee\Android\Prj\Mono2x\Gradle\unityLibrary\build\intermediates\cxx\RelWithDebInfo\r69524a1\obj\armeabi-v7a
+-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=C:\Users\ADMIN\Desktop\GAS Projects\Delivery Rush\Library\Bee\Android\Prj\Mono2x\Gradle\unityLibrary\build\intermediates\cxx\RelWithDebInfo\r69524a1\obj\armeabi-v7a
+-DCMAKE_BUILD_TYPE=RelWithDebInfo
+-DCMAKE_FIND_ROOT_PATH=C:\Users\ADMIN\Desktop\GAS Projects\Delivery Rush\.utmp\RelWithDebInfo\r69524a1\prefab\armeabi-v7a\prefab
+-BC:\Users\ADMIN\Desktop\GAS Projects\Delivery Rush\.utmp\RelWithDebInfo\r69524a1\armeabi-v7a
+-GNinja
+-DANDROID_STL=c++_shared
+                        Build command args: []
+                        Version: 2
