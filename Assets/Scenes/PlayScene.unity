@@ -227,10 +227,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 453641622}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 154, y: 820}
-  m_SizeDelta: {x: -1062.0864, y: -1681.8872}
+  m_AnchoredPosition: {x: -331, y: -60}
+  m_SizeDelta: {x: 385.3214, y: 93.6816}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &339770681
 MonoBehaviour:
@@ -788,6 +788,10 @@ MonoBehaviour:
   minimumSpawnRate: 1.5
   difficultyIncreaseRate: 0.1
   difficultyInterval: 10
+  enableSpeedVariation: 1
+  enableSizeVariation: 1
+  maxSpeedVariation: 0.5
+  maxSizeVariation: 0.2
 --- !u!4 &981769667
 Transform:
   m_ObjectHideFlags: 0

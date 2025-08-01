@@ -44,23 +44,22 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         transform.position = new Vector3(0, -4, 0);
+        
+        // Validate critical references
         if (GetComponent<BoxCollider2D>() == null)
         {
-            gameObject.AddComponent<BoxCollider2D>();
-            Debug.Log("Added BoxCollider2D to Player.");
+            Debug.LogError("Player is missing BoxCollider2D component!");
         }
         if (GetComponent<Rigidbody2D>() == null)
         {
-            var rb = gameObject.AddComponent<Rigidbody2D>();
-            rb.bodyType = RigidbodyType2D.Kinematic;
-            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-            Debug.Log("Added Rigidbody2D to Player.");
+            Debug.LogError("Player is missing Rigidbody2D component!");
         }
-        GameObject canvas = GameObject.Find("ScoreCanvas");
+
+        // Ensure the main canvas is active
+        Canvas canvas = FindFirstObjectByType<Canvas>();
         if (canvas != null)
         {
-            Debug.Log("Canvas active: " + canvas.activeInHierarchy + ", ScoreText active: " + scoreText.gameObject.activeInHierarchy);
-            canvas.SetActive(true); // Force Canvas active
+            canvas.gameObject.SetActive(true);
             scoreText.gameObject.SetActive(true); // Force ScoreText active
         }
         else
@@ -99,11 +98,28 @@ public class PlayerMovement : MonoBehaviour
             buttonsSetup = true;
         }
 
+        // Set initial game state
         SetupStartPanel();
         UpdateScoreText(); // Initialize score display
 
         // Log current persistent score for debugging
         Debug.Log($"Game started - Persistent Score: {GetPersistentScore()}, Session Score: {currentSessionScore}");
+
+        // Mobile-specific setup
+        SetupMobileDisplay();
+    }
+
+    private void SetupMobileDisplay()
+    {
+        // Only log screen info for debugging - don't modify camera
+        Debug.Log($"Screen: {Screen.width}x{Screen.height}, DPI: {Screen.dpi}");
+        
+        Camera mainCamera = Camera.main;
+        if (mainCamera != null)
+        {
+            Debug.Log($"Camera settings - Size: {mainCamera.orthographicSize}, Position: {mainCamera.transform.position}");
+            // Don't modify camera settings - let Unity handle it
+        }
     }
 
     void SetupAllButtons()
@@ -155,37 +171,25 @@ public class PlayerMovement : MonoBehaviour
     {
         if (button == null) return;
 
-        button.interactable = true;
-
-        // Use ColorTint for hover effects but with subtle colors
-        button.transition = Selectable.Transition.ColorTint;
-
-        // Setup subtle hover effects
-        ColorBlock colorBlock = button.colors;
-        colorBlock.normalColor = Color.white;
-        colorBlock.highlightedColor = new Color(0.9f, 0.9f, 0.9f, 1f); // Subtle gray on hover
-        colorBlock.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f); // Darker gray on press
-        colorBlock.selectedColor = Color.white;
-        colorBlock.disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
-        colorBlock.colorMultiplier = 1f;
-        colorBlock.fadeDuration = 0.1f;
-
-        button.colors = colorBlock;
-
+        // Remove all color overrides - let Unity use the original button appearance
+        // Don't modify button.colors at all
+        
         // Ensure proper navigation
         Navigation nav = button.navigation;
         nav.mode = Navigation.Mode.Automatic;
         button.navigation = nav;
 
-        // Ensure target graphic exists
+        // Ensure button has a graphic to avoid errors
+        Image img = button.GetComponent<Image>();
         if (button.targetGraphic == null)
         {
-            Image img = button.GetComponent<Image>();
             if (img != null)
             {
                 button.targetGraphic = img;
             }
         }
+
+        Debug.Log($"Button {button.name} configured with original Unity appearance");
 
         // Add hover effect component
         AddHoverEffect(button);
@@ -497,20 +501,11 @@ public class PlayerMovement : MonoBehaviour
         if (scoreText != null)
         {
             scoreText.text = "Score: " + totalScore.ToString();
-            RectTransform rectTransform = scoreText.GetComponent<RectTransform>();
-            if (rectTransform != null)
-            {
-                Debug.Log("Score updated to: " + totalScore + ", Text active: " + scoreText.gameObject.activeInHierarchy + ", Anchored Position: " + rectTransform.anchoredPosition);
-            }
-            else
-            {
-                Debug.Log("Score updated to: " + totalScore + ", Text active: " + scoreText.gameObject.activeInHierarchy + ", No RectTransform found");
-            }
-            scoreText.gameObject.SetActive(true); // Ensure text stays active
+            Debug.Log($"Score updated to: {totalScore}");
         }
         else
         {
-            Debug.LogWarning("ScoreText reference is not assigned!");
+            Debug.LogError("ScoreText reference is missing!");
         }
     }
 

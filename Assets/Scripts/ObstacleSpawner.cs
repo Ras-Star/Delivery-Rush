@@ -295,18 +295,96 @@ public class ObstacleSpawner : MonoBehaviour
             movement.speed = baseSpeed;
         }
         
-        // Visual variety
-        if (enableSizeVariation)
+        // Simplified scaling - ensure obstacles are always visible and proportional
+        if (playerMovement != null)
         {
-            float sizeVariation = Random.Range(1f - maxSizeVariation, 1f + maxSizeVariation);
-            newObstacle.transform.localScale = new Vector3(3f * sizeVariation, 3f * sizeVariation, 1f);
+            // Get player's actual scale
+            Vector3 playerScale = playerMovement.transform.localScale;
+            
+            // Make obstacles 1.2x the size of player, with minimum scale of 1.5f for visibility
+            Vector3 obstacleScale = new Vector3(
+                Mathf.Max(playerScale.x * 1.2f, 1.5f), 
+                Mathf.Max(playerScale.y * 1.2f, 1.5f), 
+                1f
+            );
+
+            if (enableSizeVariation)
+            {
+                float sizeVariation = Random.Range(1f - maxSizeVariation, 1f + maxSizeVariation);
+                newObstacle.transform.localScale = obstacleScale * sizeVariation;
+            }
+            else
+            {
+                newObstacle.transform.localScale = obstacleScale;
+            }
+            
+            Debug.Log($"Player scale: {playerScale}, Obstacle scale: {newObstacle.transform.localScale}");
         }
         else
         {
-            newObstacle.transform.localScale = new Vector3(3f, 3f, 1f);
+            // Fallback to reasonable mobile-friendly scale
+            newObstacle.transform.localScale = new Vector3(1.8f, 1.8f, 1f);
+            Debug.LogWarning("PlayerMovement reference not found, using default obstacle scale.");
         }
         
+        // Ensure the obstacle has proper rendering components
+        EnsureRendering(newObstacle);
+        
         activeObstacles.Add(newObstacle);
+        
+        Debug.Log($"Spawned: {prefab.name} at {position} with scale {newObstacle.transform.localScale}");
+    }
+
+    // Add this new method to ensure proper rendering
+    private void EnsureRendering(GameObject obstacle)
+    {
+        // Check if the obstacle has a renderer
+        Renderer renderer = obstacle.GetComponent<Renderer>();
+        if (renderer == null)
+        {
+            renderer = obstacle.GetComponentInChildren<Renderer>();
+        }
+        
+        if (renderer != null)
+        {
+            // Ensure the renderer is enabled and visible
+            renderer.enabled = true;
+            
+            // Force the material to be visible
+            if (renderer.material != null)
+            {
+                Color color = renderer.material.color;
+                color.a = 1f; // Ensure full opacity
+                renderer.material.color = color;
+            }
+            
+            Debug.Log($"Renderer found and configured for {obstacle.name}");
+        }
+        else
+        {
+            Debug.LogWarning($"No renderer found on obstacle {obstacle.name}!");
+        }
+        
+        // Check for SpriteRenderer specifically (common for 2D games)
+        SpriteRenderer spriteRenderer = obstacle.GetComponent<SpriteRenderer>();
+        if (spriteRenderer == null)
+        {
+            spriteRenderer = obstacle.GetComponentInChildren<SpriteRenderer>();
+        }
+        
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.enabled = true;
+            Color spriteColor = spriteRenderer.color;
+            spriteColor.a = 1f; // Ensure full opacity
+            spriteRenderer.color = spriteColor;
+            
+            // Ensure proper sorting layer
+            spriteRenderer.sortingLayerName = "Default";
+            spriteRenderer.sortingOrder = 1;
+            
+            Debug.Log($"SpriteRenderer configured for {obstacle.name}, sprite: {spriteRenderer.sprite?.name}");
+        }
     }
 
     public void RepositionCoin()
@@ -409,18 +487,62 @@ public class ObstacleSpawner : MonoBehaviour
         Debug.Log("ObstacleSpawner reset for new game");
     }
 
-    // Add this method for mobile debugging
+    // Enhanced mobile debugging method
     public void LogActiveObstacles()
     {
+        Debug.Log($"=== MOBILE OBSTACLE DEBUG ===");
         Debug.Log($"Active obstacles count: {activeObstacles.Count}");
-        foreach (GameObject obstacle in activeObstacles)
+        Debug.Log($"Screen resolution: {Screen.width}x{Screen.height}");
+        Debug.Log($"Screen DPI: {Screen.dpi}");
+        Debug.Log($"Camera position: {Camera.main?.transform.position}");
+        Debug.Log($"Camera orthographic size: {Camera.main?.orthographicSize}");
+        
+        // Check player reference
+        if (playerMovement != null)
         {
+            Debug.Log($"Player scale: {playerMovement.transform.localScale}");
+            Debug.Log($"Player position: {playerMovement.transform.position}");
+        }
+        else
+        {
+            Debug.LogWarning("PlayerMovement reference is null!");
+        }
+        
+        for (int i = 0; i < activeObstacles.Count; i++)
+        {
+            GameObject obstacle = activeObstacles[i];
             if (obstacle != null)
             {
-                Renderer[] renderers = obstacle.GetComponentsInChildren<Renderer>();
-                Debug.Log($"Obstacle {obstacle.name} at {obstacle.transform.position} - Renderers: {renderers.Length} - Active: {obstacle.activeInHierarchy}");
+                // Check if obstacle is within camera view
+                Camera cam = Camera.main;
+                Vector3 screenPoint = cam.WorldToScreenPoint(obstacle.transform.position);
+                bool isVisible = screenPoint.z > 0 && screenPoint.x > 0 && screenPoint.x < Screen.width && screenPoint.y > 0 && screenPoint.y < Screen.height;
+                
+                Debug.Log($"Obstacle {i}: {obstacle.name}");
+                Debug.Log($"  Position: {obstacle.transform.position}");
+                Debug.Log($"  Scale: {obstacle.transform.localScale}");
+                Debug.Log($"  Screen Position: {screenPoint}");
+                Debug.Log($"  Is Visible: {isVisible}");
+                Debug.Log($"  Active: {obstacle.activeInHierarchy}");
+                
+                // Check renderers
+                SpriteRenderer spriteRenderer = obstacle.GetComponent<SpriteRenderer>();
+                if (spriteRenderer != null)
+                {
+                    Debug.Log($"  SpriteRenderer - Enabled: {spriteRenderer.enabled}, Sprite: {spriteRenderer.sprite?.name}, Color: {spriteRenderer.color}");
+                    Debug.Log($"  Sorting Layer: {spriteRenderer.sortingLayerName}, Order: {spriteRenderer.sortingOrder}");
+                }
+                else
+                {
+                    Debug.LogWarning($"  No SpriteRenderer found on {obstacle.name}!");
+                }
+            }
+            else
+            {
+                Debug.Log($"Obstacle {i}: NULL");
             }
         }
+        Debug.Log($"=== END DEBUG ===");
     }
 
     // Add this method to remove an obstacle from the active list
@@ -428,6 +550,89 @@ public class ObstacleSpawner : MonoBehaviour
     {
         activeObstacles.Remove(obstacle);
         Debug.Log($"Removed obstacle: {obstacle.name} from active list");
+    }
+
+    [ContextMenu("Test Mobile Obstacle")]
+    public void TestMobileObstacle()
+    {
+        if (trafficCarPrefab != null)
+        {
+            Vector3 testPosition = new Vector3(0, 0, 0); // Center of screen
+            CreateObstacle(trafficCarPrefab, testPosition);
+            LogActiveObstacles();
+        }
+    }
+
+    [ContextMenu("Test Scale Comparison")]
+    public void TestScaleComparison()
+    {
+        GameObject player = FindFirstObjectByType<PlayerMovement>()?.gameObject;
+        if (player != null && trafficCarPrefab != null)
+        {
+            Debug.Log($"=== SCALE COMPARISON ===");
+            Debug.Log($"Player scale: {player.transform.localScale}");
+            Debug.Log($"Player position: {player.transform.position}");
+            
+            // Create test obstacle next to player
+            Vector3 testPosition = new Vector3(player.transform.position.x + 2f, player.transform.position.y, 0);
+            CreateObstacle(trafficCarPrefab, testPosition);
+            
+            LogActiveObstacles();
+            Debug.Log($"=== END COMPARISON ===");
+        }
+    }
+
+    [ContextMenu("Test Mobile Visibility")]
+    public void TestMobileVisibility()
+    {
+        if (trafficCarPrefab != null)
+        {
+            // Test different positions on screen
+            Vector3[] testPositions = {
+                new Vector3(-2f, 2f, 0f),  // Left lane, mid screen
+                new Vector3(0f, 2f, 0f),   // Center lane, mid screen  
+                new Vector3(2f, 2f, 0f)    // Right lane, mid screen
+            };
+            
+            foreach (Vector3 pos in testPositions)
+            {
+                CreateObstacle(trafficCarPrefab, pos);
+            }
+            
+            Debug.Log("Created test obstacles for mobile visibility testing");
+            LogActiveObstacles();
+        }
+    }
+
+    [ContextMenu("Check Player and Obstacle Scales")]
+    public void CheckCurrentScales()
+    {
+        if (playerMovement != null)
+        {
+            Debug.Log($"=== CURRENT SCALE CHECK ===");
+            Debug.Log($"Player current scale: {playerMovement.transform.localScale}");
+            Debug.Log($"Player position: {playerMovement.transform.position}");
+            
+            if (activeObstacles.Count > 0)
+            {
+                for (int i = 0; i < activeObstacles.Count; i++)
+                {
+                    if (activeObstacles[i] != null)
+                    {
+                        Debug.Log($"Obstacle {i} ({activeObstacles[i].name}): Scale = {activeObstacles[i].transform.localScale}");
+                    }
+                }
+            }
+            else
+            {
+                Debug.Log("No active obstacles to check");
+            }
+            Debug.Log($"=== END SCALE CHECK ===");
+        }
+        else
+        {
+            Debug.LogWarning("PlayerMovement reference is null!");
+        }
     }
 }
 
