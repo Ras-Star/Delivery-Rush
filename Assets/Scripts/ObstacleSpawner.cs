@@ -12,9 +12,9 @@ public class ObstacleSpawner : MonoBehaviour
     
     [Header("Difficulty Settings")]
     public float initialSpawnRate = 5f; // Starting spawn interval (5 seconds)
-    public float minimumSpawnRate = 1.5f; // Fastest spawn rate (1.5 seconds)
-    public float difficultyIncreaseRate = 0.1f; // How much to decrease interval every X seconds
-    public float difficultyInterval = 10f; // Increase difficulty every 10 seconds
+    public float minimumSpawnRate = 0.8f; // Faster minimum spawn rate (was 1.5f)
+    public float difficultyIncreaseRate = 0.25f; // Increased from 0.1f for more noticeable changes
+    public float difficultyInterval = 7f; // Decreased from 10f for more frequent changes
 
     [Header("Obstacle Behavior")]
     public bool enableSpeedVariation = true;
@@ -146,8 +146,8 @@ public class ObstacleSpawner : MonoBehaviour
         {
             if (currentSpawnRate > minimumSpawnRate)
             {
-                // Progressive difficulty increase (starts slow, gets faster)
-                float difficultyMultiplier = 1f + (difficultyLevel * 0.1f);
+                // More aggressive difficulty scaling
+                float difficultyMultiplier = 1f + (difficultyLevel * 0.15f); // Increased from 0.1f
                 float decreaseAmount = difficultyIncreaseRate * difficultyMultiplier;
                 currentSpawnRate = Mathf.Max(minimumSpawnRate, currentSpawnRate - decreaseAmount);
                 difficultyLevel++;
@@ -155,6 +155,12 @@ public class ObstacleSpawner : MonoBehaviour
                 
                 float gameTime = currentTime - gameStartTime;
                 Debug.Log($"Difficulty increased! Level: {difficultyLevel}, Spawn Rate: {currentSpawnRate:F1}s, Game Time: {gameTime:F0}s");
+                
+                // Also increase obstacle speed with difficulty
+                if (difficultyLevel % 2 == 0) // Every other difficulty level
+                {
+                    maxSpeedVariation += 0.05f; // Gradually allow for faster obstacles
+                }
             }
         }
     }
@@ -295,37 +301,21 @@ public class ObstacleSpawner : MonoBehaviour
             movement.speed = baseSpeed;
         }
         
-        // Simplified scaling - ensure obstacles are always visible and proportional
-        if (playerMovement != null)
+        // INCREASED: Make obstacles 80% larger - from 2.0 to 3.6
+        Vector3 obstacleScale = new Vector3(3.6f, 3.6f, 1f);
+        
+        if (enableSizeVariation)
         {
-            // Get player's actual scale
-            Vector3 playerScale = playerMovement.transform.localScale;
-            
-            // Make obstacles 1.2x the size of player, with minimum scale of 1.5f for visibility
-            Vector3 obstacleScale = new Vector3(
-                Mathf.Max(playerScale.x * 1.2f, 1.5f), 
-                Mathf.Max(playerScale.y * 1.2f, 1.5f), 
-                1f
-            );
-
-            if (enableSizeVariation)
-            {
-                float sizeVariation = Random.Range(1f - maxSizeVariation, 1f + maxSizeVariation);
-                newObstacle.transform.localScale = obstacleScale * sizeVariation;
-            }
-            else
-            {
-                newObstacle.transform.localScale = obstacleScale;
-            }
-            
-            Debug.Log($"Player scale: {playerScale}, Obstacle scale: {newObstacle.transform.localScale}");
+            float sizeVariation = Random.Range(1f - maxSizeVariation, 1f + maxSizeVariation);
+            newObstacle.transform.localScale = obstacleScale * sizeVariation;
         }
         else
         {
-            // Fallback to reasonable mobile-friendly scale
-            newObstacle.transform.localScale = new Vector3(1.8f, 1.8f, 1f);
-            Debug.LogWarning("PlayerMovement reference not found, using default obstacle scale.");
+            newObstacle.transform.localScale = obstacleScale;
         }
+        
+        // Report the fixed size
+        Debug.Log($"Fixed obstacle scale: {newObstacle.transform.localScale}");
         
         // Ensure the obstacle has proper rendering components
         EnsureRendering(newObstacle);
